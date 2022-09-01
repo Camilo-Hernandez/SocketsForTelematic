@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from sys import argv,exit
+from sys import argv, exit
 from socket import *
 
 class MyEchoServer:
@@ -11,41 +11,48 @@ class MyEchoServer:
             self.server = socket(AF_INET,SOCK_STREAM)
         elif self.protocol_type.upper() == 'UDP':
             self.server = socket(AF_INET,SOCK_DGRAM)
+        else:
+            print('Protocol not permitted.')
+    
     def start (self):
-        self.server.bind((self.ip,self.port))
+        self.server.bind((self.ip, self.port))
         if self.protocol_type.upper() == 'TCP':
-            self.server.listen(5)    
+            self.server.listen(5)
         print ("Waiting connection")
     
     def handlerRequests(self):
         if self.protocol_type.upper() == 'TCP':
             while True:
-                conn, add = self.server.accept()
+                conn, remote_host = self.server.accept()
+                print ("Connection from", remote_host)
                 data = conn.recv(1024)
-                if data == 'quit\r\n'.lower():
-                    self.stop()
-                print ("Connection from", add)
                 conn.send(data.upper())
+                if data.decode().lower() in ('quit\r\n', 'quit', 'quit\n'):
+                    self.stop()
+                    break
                 conn.close()
+
         elif self.protocol_type.upper() == 'UDP':
             while True:
-                data,remote_host = self.server.recvfrom(9999) # Pregunta G
-                print(data.decode())
-                print(remote_host)
-                #('127.0.0.1',40082)
-                self.server.sendto("Ok, I got it".encode(),remote_host) # Pasar a pantalla D
-                self.server.close()
+                data, remote_host = self.server.recvfrom(9999) # Pregunta G
+                # remote_host -> ('127.0.0.1',40082)
+                print ("Connection from", remote_host)
+                #print(data)
+                self.server.sendto(data.upper(), remote_host)
+                if data.decode().lower() in ('quit\r\n', 'quit', 'quit\n'):
+                    self.stop()
+                    break
 
     def stop (self):
         self.server.close()
         print ("Server down")
 
 def main():
-    if len(argv) != 3:
-        print("[!] Use: scan.py [IP_Address] [TCP_Port]")
+    if len(argv) != 4:
+        print("[!] Use: MyEchoServer.py [Protocol_Type] [IP_Address] [Port]")
         exit(1)
-
-    s = MyEchoServer("127.0.0.1", 9999, 'UDP')
+    
+    s = MyEchoServer(str(argv[2]), int(argv[3]), str(argv[1]))
     s.start()
     s.handlerRequests()
 

@@ -7,6 +7,7 @@ import os
 if len(argv) != 3:
     print("[!] Use: scan.py [IP_Address] [TCP_Port]")
     exit(1)
+
 ip = str(argv[1])
 port = int(argv[2])
 scanner = socket(AF_INET, SOCK_STREAM)

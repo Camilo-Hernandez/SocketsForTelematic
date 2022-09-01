@@ -5,11 +5,11 @@ def add_hours(number_of_hours):
     return datetime.now() + timedelta(hours=number_of_hours)
 
 s = socket(AF_INET, SOCK_STREAM)
-s.bind(("192.168.30.5", 33333))
+s.bind(("localhost", 4444))
 s.listen(5)
 print("Waiting connection")
-conn, add = s.accept()
-print("Connection from ",add)
+conn, remote_host = s.accept()
+print("Connection from ",remote_host)
 conn.send("Welcome, How can I help you?".encode())
 while True:
     data = conn.recv(1024)
@@ -21,10 +21,11 @@ while True:
         conn.send(str(add_hours(7)).encode())
     elif data == "UK":
         conn.send(str(add_hours(6)).encode())
-    elif data == "QUIT":
+    elif data.upper() == "QUIT":
         break
-    #else:
-        #reply=input("Reply> ")
-        #conn.send(reply.encode())
+    else:
+        reply=input("Reply> ")
+        conn.send(reply.encode())
 
 s.close()
+exit()
