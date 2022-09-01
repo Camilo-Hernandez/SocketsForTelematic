@@ -1,2 +1,2 @@
 # SocketsForTelematic
-Programas de Sockets y POO para la materia de Servicios Telemáticos
+Programas de Sockets con POO para la materia de Servicios Telemáticos
