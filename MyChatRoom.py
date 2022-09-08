@@ -23,7 +23,7 @@ class myHandler(BaseRequestHandler):
                 msg = "Client left" + str(self.client_address) + "\r\n"
                 self.SOCKETS_LIST.remove(self.request)
                 self.broadcast_string(msg,self.request)
-                self.print_sockets_list()
+                #self.print_sockets_list()
                 break
             elif data.decode().startswith('s=>'):
                 msg = "[%s:%s] %s" % (host, port, data.decode())
@@ -31,7 +31,7 @@ class myHandler(BaseRequestHandler):
             else:
                 msg = "[%s:%s] %s" % (host, port, data.decode())
                 self.broadcast_string(msg, self.request)
-                self.print_sockets_list()
+                #self.print_sockets_list()
     
     def print_sockets_list(self):
         print(self.SOCKETS_LIST)
@@ -42,6 +42,10 @@ def main():
         exit(1)'''
     port = 9874 #int(argv[1])
     global myServer
+    hostname = socket.gethostname()
+    ip_server = socket.gethostbyname(hostname)
+    print(f'Server\'s IP: {ip_server}')
+    # Para conectar un cliente al servidor, es necesario conocer su ip, la cual es generada automaticamente por docker
     myServer = ThreadingTCPServer(('0.0.0.0',port),myHandler)
     myHandler.SOCKETS_LIST.append(myServer)
     print ("ChatServer started on port %s" % port)
