@@ -37,12 +37,12 @@ class myHandler(BaseRequestHandler):
         print(self.SOCKETS_LIST)
 
 def main():
-    if len(argv) != 2:
+    '''if len(argv) != 2:
         print("[!] Use: MyChatRoom.py [Port]")
-        exit(1)
-    port = int(argv[1])
+        exit(1)'''
+    port = 9874 #int(argv[1])
     global myServer
-    myServer = ThreadingTCPServer(('localhost',port),myHandler)
+    myServer = ThreadingTCPServer(('0.0.0.0',port),myHandler)
     myHandler.SOCKETS_LIST.append(myServer)
     print ("ChatServer started on port %s" % port)
     myServer.serve_forever()
