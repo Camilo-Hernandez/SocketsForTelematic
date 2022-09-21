@@ -34,7 +34,7 @@ class MyEchoServer:
 
         elif self.protocol_type.upper() == 'UDP':
             while True:
-                data, remote_host = self.server.recvfrom(9999) # Pregunta G
+                data, remote_host = self.server.recvfrom(9999)
                 # remote_host -> ('127.0.0.1',40082)
                 print ("Connection from", remote_host)
                 #print(data)
