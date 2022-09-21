@@ -4,14 +4,13 @@
 FROM alpine:latest 
 
 # Responsible
-MAINTAINER Camilo Hernandez Ruiz
+LABEL manteiner="Camilo Hernandez Ruiz"
 
 # Updates the package index and installs python3 in the alpine container
-RUN apk --update add python3
-RUN apk add busybox-extras
+RUN apk --update add python3 \
+ && apk add busybox-extras
 # Copies the hello-docker.py file to the image
-COPY MyChatRoom.py /
-COPY SocketClientTCP.py /
+COPY . /
+
 # Executes python3 with /opt/hello-docker.py as the only parameter
-#CMD ["MyChatRoom.py"]
-#ENTRYPOINT ["python3"]
+#CMD ["python3","MyChatRoom.py"]

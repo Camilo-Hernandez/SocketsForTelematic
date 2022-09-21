@@ -2,13 +2,13 @@ from socket import *
 from sys import argv, exit
 
 def main():
-    if len(argv) != 2:
-        print("[!] Use: SocketClientTCP.py [Port]")
+    if len(argv) != 3:
+        print("[!] Use: SocketClientTCP.py [IP] [Port]")
         exit(1)
 
     while True:
         c = socket(AF_INET,SOCK_STREAM)
-        c.connect(("localhost", int(argv[1])))
+        c.connect((str(argv[1]), int(argv[2])))
         request=input("Request> ")
         c.send(request.encode())
         if request.upper() == "QUIT": break
