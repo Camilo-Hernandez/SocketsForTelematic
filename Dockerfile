@@ -6,7 +6,7 @@ FROM alpine:latest
 # Responsible
 LABEL manteiner="Camilo Hernandez Ruiz"
 
-# Updates the package index and installs python3 in the alpine container
+# Updates the package index, installs python3 in the alpine container and busybox-extras for telenet
 RUN apk --update add python3 \
  && apk add busybox-extras
 # Copies the hello-docker.py file to the image
