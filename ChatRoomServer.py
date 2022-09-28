@@ -9,8 +9,8 @@ import hashlib
 
 class myHandler(StreamRequestHandler):
     SOCKETS_LIST = []  # Lista de sockets en la red
-    features = ('Name', 'Age', 'Sex', 'Location', 'Host', 'Port')
-    register = pd.DataFrame(columns=features)
+    FEATURES = ('Name', 'Age', 'Sex', 'Location', 'Host', 'Port')
+    REGISTER = pd.DataFrame(columns=FEATURES)
 
     def append_row(self, df, row):
         return pd.concat([
@@ -32,6 +32,8 @@ class myHandler(StreamRequestHandler):
         # Mensaje únicamente al host que lo envió
         # Se obtiene la IP y puerto del cliente
         host, port = self.client_address
+        host=str(host)
+        port=str(port)
         # Informar nuevo usuario en la sala a todo el mundo
         self.notifyNewUser()
         # Enviar menú
@@ -64,7 +66,7 @@ class myHandler(StreamRequestHandler):
             elif command.upper().startswith('CONN '):
                 pass
             elif command.upper() == 'LS\r\n':
-                self.sendList()
+                self.sendList(host, port)
             else:  # Mensaje a todos por broadcast
                 msg = f"[{host}:{port}] {command}"
                 self.broadcast_string(msg, self.request)
@@ -93,28 +95,32 @@ class myHandler(StreamRequestHandler):
             return False
 
         # Registro del usuario
-        temp_code = command+str(host)+str(port) # para el hash
+        temp_code = command+host+port # para el hash
         id = hashlib.sha256(temp_code.encode('utf-8')).hexdigest()[:5] # hash id
-        self.register.loc[id] = {f:r for f,r in zip(self.features, (name, age, sex, location, str(host), str(port) ))} # anexo al registro
-        # Envío de los datos del usuario
-        msg = map(lambda f,r: f'{f}: {r}\n'.encode(), self.features, self.register.loc[id])  # creación del iterador del mensaje
+        self.REGISTER.loc[id] = {f:r for f,r in zip(self.FEATURES, (name, age, sex, location, str(host), str(port) ))} # anexo al registro
+        # Envío de los datos del usuario al propio usuario
+        msg = map(lambda f,r: f'{f}: {r}\n'.encode(), self.FEATURES, self.REGISTER.loc[id])  # creación del iterador del mensaje
         list(map(self.wfile.write, msg)) # enviar mensaje
         # impresión del proceso
-        list(map(print,msg))
         log = f'Usuario {id} registrado'
         print(log)
+        msg = f'{self.REGISTER.loc[id]}'
+        print(msg)
         
-    def sendList(self):
+    def sendList(self, host, port):
         log = f'Listando usuarios'
         print(log)
-        for i in range(len(self.register)):
-            msg = map(lambda f,r: f'{f}: {r}\n'.encode(), self.features, self.register.iloc[i])
+        for i in range(len(self.REGISTER)):
+            # TODO: excluir el solicitante de la lista
+            msg = map(lambda f,r: f'{f}: {r}\n'.encode(), self.FEATURES, self.REGISTER.iloc[i])
             list(map(self.wfile.write, msg))
             self.wfile.write(b'\n')
 
     def notifyNewUser(self):
-        msg = f"Usuario conectado: {self.client_address}\r\n"
+        msg = f"\nUsuario conectado: {self.client_address}\r\n"
         self.broadcast_string(msg,self.request) # Se envía el mensaje a todos
+        msg = "\nRequest> "
+        self.broadcast_string(msg,self.SOCKETS_LIST[0]) # Se envía el mensaje a todos excepto al propio servidor
 
     def print_sockets_list(self):
         print(self.SOCKETS_LIST)
