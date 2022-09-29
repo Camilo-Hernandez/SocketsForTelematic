@@ -73,14 +73,12 @@ class myTCPHandler(StreamRequestHandler):
                     # Informar nuevo usuario en la sala a todo el mundo
                     self.notifyNewUser()
                     continue
-            elif command.upper().strip() == 'LS':
+            elif command.upper().strip() == 'LS': # Enviar lista
                 #print(self.request)
                 #print(self.client_address)
                 self.sendList(host, port)
-            elif command.upper().strip() == 'LSM':
+            elif command.upper().strip() == 'LSM': # Enviar lista de mujeres
                 self.sendWomenList(host, port)
-            else:
-                print("Lo que enviaste no hace nada.")
 
     def registerUser(self, command, host, port):
         try:
@@ -110,7 +108,8 @@ class myTCPHandler(StreamRequestHandler):
         # Registro del usuario
         temp_code = command+host+port # para el hash
         id = hashlib.sha256(temp_code.encode('utf-8')).hexdigest()[:5] # hash id
-        self.REGISTER.loc[id] = {f:r for f,r in zip(self.FEATURES, (name.upper(), age, sex.upper(), location.upper(), host, port ))} # anexo al registro
+        # Anexo al DataFrame de REGISTER usando Dictionary Comprenhension
+        self.REGISTER.loc[id] = {f:r for f,r in zip(self.FEATURES, (name.upper(), age, sex.upper(), location.upper(), host, port ))}
         # Envío de los datos del usuario al propio usuario
         msg = map(lambda f,r: f'{f}: {r}\n'.encode(), self.FEATURES, self.REGISTER.loc[id])  # creación del iterador del mensaje
         list(map(self.wfile.write, msg)) # enviar mensaje
@@ -155,10 +154,10 @@ if __name__ == '__main__':
     if len(argv) != 3:
         print("[!] Use: ChatRoomServer.py [Server IP] [Port]")
         exit(1)
-    chat_service_port = int(argv[1])
+    chat_service_port = int(argv[2])
     global myServer
     #hostname = socket.gethostname()
-    ip_server = str(argv[0]) # socket.gethostbyname(hostname)
+    ip_server = str(argv[1]) # socket.gethostbyname(hostname)
     print(f'Server\'s IP: {ip_server}')
     # Para conectar un cliente al servidor, es necesario conocer su ip, la cual es generada automaticamente por docker
     with ThreadingTCPServer((ip_server,chat_service_port),myTCPHandler) as myServer:
