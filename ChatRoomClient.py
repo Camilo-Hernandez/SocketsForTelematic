@@ -3,7 +3,7 @@ from urllib import response
 from sys import argv, exit
 from socket import *
 import os
-import telnetlib
+import string
 
 if __name__ == '__main__':
     os.system('clear')
@@ -28,7 +28,7 @@ if __name__ == '__main__':
                 if request.upper().startswith('CONN '):
                     try:
                         _, remote_ip = request.split(' ')
-                        self.connect_to_udp_user(remote_ip=remote_ip)
+                        self.connect_to_udp_user(remote_ip=remote_ip)                    
                     except:
                         print("[!] CONN ERROR: Ingrese bien los datos.")
                         continue
@@ -53,13 +53,27 @@ if __name__ == '__main__':
             self.userUDPsocket = socket(AF_INET, SOCK_DGRAM)
             print(f'Connecting with ({remote_ip},{self.remote_port})...')
             while True:
+                # Encriptación del mensaje
                 msg = input("You > ")
-                self.userUDPsocket.sendto(msg.encode(), (remote_ip, self.remote_port))
+                self.encrypted_msg = ''
+                for i in range(len(msg)):
+                    self.encrypted_msg = self.encrypted_msg + chr(ord(msg[i])+3)
+                else:
+                    print(f'Encryped: {self.encrypted_msg}')
+                    self.userUDPsocket.sendto(self.encrypted_msg.encode(), (remote_ip,self.remote_port))
                 if msg.lower() == 'bye': break
+
+                # Desencriptación del mensaje
                 data, remote_host = self.userUDPsocket.recvfrom(2048)
                 data = data.decode().strip()
-                print(f'{remote_host} > {data}')
-                if data == 'bye': break
+                self.decrypted_msg = ''
+                for i in range(len(data)):
+                    self.decrypted_msg = self.decrypted_msg + chr(ord(data[i])-3)
+                else:
+                    print(f'{remote_host} > {self.decrypted_msg}')
+                    if self.decrypted_msg == 'bye': break
+                    print()
+
             print('Chat closed.')
             self.userUDPsocket.close()
 
@@ -70,15 +84,48 @@ if __name__ == '__main__':
             self.userUDPsocket.bind((self.my_ip, self.my_udp_port))
             print(f"Escuchando por el puerto {self.my_udp_port}...")
             while True:
+                # Desencriptación del mensaje
                 data, remote_host = self.userUDPsocket.recvfrom(2048)
                 data = data.decode().strip()
-                print(f'{remote_host} > {data}')
-                if data == 'bye': break
+                self.decrypted_msg = ''
+                for i in range(len(data)):
+                    self.decrypted_msg = self.decrypted_msg + chr(ord(data[i])-3)
+                else:
+                    print(f'{remote_host} > {self.decrypted_msg}')
+                    if self.decrypted_msg == 'bye': break
+                    print()
+                if self.decrypted_msg == 'bye': break
+
+                # Encriptación del mensaje
                 msg = input("You > ")
-                self.userUDPsocket.sendto(msg.encode(), remote_host)
+                self.encrypted_msg = ''
+                for i in range(len(msg)):
+                    self.encrypted_msg = self.encrypted_msg + chr(ord(msg[i])+3)
+                else:
+                    print(f'Encryped: {self.encrypted_msg}')
+                    self.userUDPsocket.sendto(self.encrypted_msg.encode(), remote_host)
                 if msg == 'bye': break
             print('Chat closed.')
             self.userUDPsocket.close()
+
+        def shift_n_letters(text, n):
+            """Emplea encriptación Cesar: Desplaza cada caracter de un texto, n cantidad de letras
+
+            Args:
+                text (str): texto a encriptar
+                n (int): factor de desplazamiento
+
+            Returns:
+                str: texto encriptado
+            """
+            # alphabet "abcdefghijklmnopqrstuvwxyz"
+            intab = string.ascii_lowercase
+            # alphabet shifted by n positions
+            outtab = intab[n % 26:] + intab[:n % 26]
+            # translation made b/w patterns
+            trantab = str.maketrans(intab, outtab)
+            # text is shifted to right
+            return text.translate(trantab)
 
             
 

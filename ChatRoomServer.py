@@ -47,7 +47,25 @@ class myTCPHandler(StreamRequestHandler):
                 msg = f"Client left {self.client_address}\r\n"
                 self.SOCKETS_LIST.remove(self.request)
                 self.broadcast_string(msg, self.request)
-                # TODO: eliminar el usuario del REGISTER
+                # TODO: Eliminar el usuario del REGISTER
+                '''
+                print('Condición:')
+                print(
+                    self.REGISTER[
+                        self.REGISTER.Host.isin([self.client_address[0]]) &
+                        self.REGISTER.Port.isin([str(self.client_address[1])])
+                        ].index)
+                '''
+                self.REGISTER = self.REGISTER.drop(
+                    self.REGISTER[
+                        self.REGISTER.Host.isin([self.client_address[0]]) &
+                        self.REGISTER.Port.isin([str(self.client_address[1])])
+                        ].index
+                        )
+                '''
+                print('Registro:')
+                print(self.REGISTER)
+                '''
                 self.wfile.write("BYE".encode())
                 # self.print_sockets_list()
                 break
@@ -57,6 +75,8 @@ class myTCPHandler(StreamRequestHandler):
                     self.notifyNewUser()
                     continue
             elif command.upper().strip() == 'LS':
+                print(self.request)
+                print(self.client_address)
                 self.sendList(host, port)
 
     def registerUser(self, command, host, port):
@@ -105,6 +125,7 @@ class myTCPHandler(StreamRequestHandler):
             self.wfile.write(b'\n')
             msg = map(lambda f,r: f'{f}: {r}\n'.encode(), self.FEATURES, self.REGISTER.iloc[i])
             list(map(self.wfile.write, msg))
+            print(self.REGISTER.iloc[i])
             self.wfile.write(b'\n')
 
     def notifyNewUser(self):
