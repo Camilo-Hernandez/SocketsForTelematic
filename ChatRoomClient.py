@@ -6,7 +6,7 @@ import os
 if __name__ == '__main__':
     os.system('clear')
     if len(argv) != 3:
-        print("[!] Use: ChatRoomClient.py [IP] [Port]")
+        print("[!] Use: ChatRoomClient.py [Server IP] [Port]")
         exit(1)
        
     class User:
@@ -30,7 +30,7 @@ if __name__ == '__main__':
                     except:
                         print("[!] CONN ERROR: Ingrese bien los datos.")
                         continue
-                elif request.upper().strip() == 'WAIT':
+                elif request.upper().strip().startswith('WAIT '):
                     try:
                         _, my_ip = request.split(' ')
                         self.wait_for_udp_user(my_ip)
@@ -41,6 +41,8 @@ if __name__ == '__main__':
                 if request.upper().strip() == "BYE":
                     print('Todo bien.')
                     break
+                elif request.upper().strip() in ('LS','LSM') or request.upper().startswith('REG '): continue
+                else: print('Lo que enviaste no hace nada.')
             self.userTCPsocket.close()
 
         def recv_from_TCPserver(self):
