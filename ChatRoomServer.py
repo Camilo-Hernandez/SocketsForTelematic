@@ -5,7 +5,6 @@ from sys import argv, exit
 import pandas as pd
 import hashlib
 
-
 class myTCPHandler(StreamRequestHandler):
     SOCKETS_LIST = []  # Lista de sockets en la red
     FEATURES = ('Name', 'Age', 'Sex', 'Location', 'Host', 'Port')
@@ -33,10 +32,10 @@ class myTCPHandler(StreamRequestHandler):
         Está conectado al servidor.
         Lista de comandos:
         [Registrar]: REG <nombre> <edad: 19-99> <sexo: M/F/NB> <ubicacion: MED, ENV, SAB, EST, BEL, ITA>
-        [Listar] LS
-        [Invitar] CONN <ip_dst>
-        [Esperar] WAIT
-        [Salir] BYE
+        [Listar]: LS
+        [Invitar]: CONN <ip_dst> (Entrar en modo conexión. El usuario con ip_dst debe estar en modo espera.)
+        [Esperar]: WAIT <ip_dst> (Entrar en modo de espera.)
+        [Salir]: BYE
         '''
         self.wfile.write(menu.encode())
         while True:
@@ -75,9 +74,13 @@ class myTCPHandler(StreamRequestHandler):
                     self.notifyNewUser()
                     continue
             elif command.upper().strip() == 'LS':
-                print(self.request)
-                print(self.client_address)
+                #print(self.request)
+                #print(self.client_address)
                 self.sendList(host, port)
+            elif command.upper().strip() == 'LSM':
+                self.sendWomenList(host, port)
+            else:
+                print("Lo que enviaste no hace nada.")
 
     def registerUser(self, command, host, port):
         try:
@@ -86,7 +89,7 @@ class myTCPHandler(StreamRequestHandler):
 
             # Validación de edad
             if int(age) not in range(19, 100):
-                msg = f'Estás demasiado joven para tomar, ubícate güevón.'
+                msg = f'Estás demasiado joven para tomar o demasiado viejo para existir, ubícate güevón.'
                 self.wfile.write(msg.encode())
                 return False
 
@@ -127,7 +130,19 @@ class myTCPHandler(StreamRequestHandler):
             list(map(self.wfile.write, msg))
             print(self.REGISTER.iloc[i])
             self.wfile.write(b'\n')
-
+    
+    def sendWomenList(self, host, port):
+        log = f'Listando usuarios'
+        print(log)
+        for i in range(len(self.REGISTER)):
+            # TODO: excluir el solicitante de la lista
+            if self.REGISTER.iloc[i].Sex == 'F':
+                self.wfile.write(b'\n')
+                msg = map(lambda f,r: f'{f}: {r}\n'.encode(), self.FEATURES, self.REGISTER.iloc[i])
+                list(map(self.wfile.write, msg))
+                print(self.REGISTER.iloc[i])
+                self.wfile.write(b'\n')
+    
     def notifyNewUser(self):
         msg = f"\nUsuario conectado: {self.client_address}\r\n"
         self.broadcast_string(msg,self.request) # Se envía el mensaje a todos
@@ -137,16 +152,16 @@ class myTCPHandler(StreamRequestHandler):
 
 if __name__ == '__main__':
     os.system('clear')
-    if len(argv) != 2:
-        print("[!] Use: MyChatRoom.py [Port]")
+    if len(argv) != 3:
+        print("[!] Use: ChatRoomServer.py [Server IP] [Port]")
         exit(1)
     chat_service_port = int(argv[1])
     global myServer
-    hostname = socket.gethostname()
-    ip_server = socket.gethostbyname(hostname)
+    #hostname = socket.gethostname()
+    ip_server = str(argv[0]) # socket.gethostbyname(hostname)
     print(f'Server\'s IP: {ip_server}')
     # Para conectar un cliente al servidor, es necesario conocer su ip, la cual es generada automaticamente por docker
-    with ThreadingTCPServer(('0.0.0.0',chat_service_port),myTCPHandler) as myServer:
+    with ThreadingTCPServer((ip_server,chat_service_port),myTCPHandler) as myServer:
         myTCPHandler.SOCKETS_LIST.append(myServer)
         print (f"ChatServerTCP started on port {chat_service_port}")
         print ('Waiting for connections')
